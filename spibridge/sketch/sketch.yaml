@@ -1,0 +1,9 @@
+profiles:
+  default:
+    fqbn: 
+    platforms:
+      - platform: arduino:zephyr
+    libraries:
+      - LibPrintf (1.2.13)
+
+default_profile: default
