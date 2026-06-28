@@ -132,7 +132,16 @@ class Inspector:
 def main():
     print("=== PS4 EVDEV Joystick Test ===")
     
-    # Metadata
+    # 1. Remotely fire the initialization sequence
+    print("Initializing Bluetooth & input device node on the brick framework...")
+    init_status = joystick.startJoystick()
+    print("Bridge Response:", init_status)
+    
+    if init_status.get("status") == "error":
+        print("❌ Could not stand up Joystick hardware link. Exiting.")
+        return
+
+    # 2. Metadata Queries (Safe to run now because we know the hardware link is active)
     try:
         name = joystick.getName()
         print("Joystick Name:", name)
@@ -154,18 +163,15 @@ def main():
         return
 
     print("\n=== Live Joystick State ===")
-
     inspector = Inspector()
 
     while True:
         try:
             state = joystick.getState()
-    
-            # Convert keys to integers
+            
             axes = {int(k): v for k, v in state.get("axes", {}).items()}
             buttons = {int(k): v for k, v in state.get("buttons", {}).items()}
     
-            # Build fixed arrays
             axis_values = [axes.get(code, 0) for code in AXIS_ORDER]
             button_values = [buttons.get(code, 0) for code in BUTTON_ORDER]
     
@@ -178,6 +184,9 @@ def main():
             print("Error reading joystick state:", e)
     
         time.sleep(0.01)
+
+if __name__ == "__main__":
+    main()
 
 
 
