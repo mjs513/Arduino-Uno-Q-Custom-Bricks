@@ -5,6 +5,19 @@ JOYSTICK_HOST = os.getenv("JOYSTICK_HOST", "joystickbridge")
 BASE_URL = f"http://{JOYSTICK_HOST}:5000"
 
 # ----------------------------------------------------
+# Joystick initialization
+# ----------------------------------------------------
+
+def startJoystick():
+    """Triggers the remote background device search and pairing engine loop."""
+    url = f"{BASE_URL}/joystick/start"
+    try:
+        response = requests.post(url, timeout=45) # Long timeout to allow for the 10 setup sweeps
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        return {"status": "error", "message": f"Connection to bridge failed: {e}"}
+
+# ----------------------------------------------------
 # Joystick metadata
 # ----------------------------------------------------
 def getName():

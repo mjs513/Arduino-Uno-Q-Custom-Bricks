@@ -157,6 +157,15 @@ def main():
     schedule.every(0.01).seconds.do(scheduled_send_joystick)
 
     print("=== PS4 EVDEV Joystick Test ===")
+    # 1. Remotely fire the initialization sequence
+    print("Initializing Bluetooth & input device node on the brick framework...")
+    init_status = joystick.startJoystick()
+    print("Bridge Response:", init_status)
+    
+    if init_status.get("status") == "error":
+        print("❌ Could not stand up Joystick hardware link. Exiting.")
+        return
+    
 
     # Metadata
     try:

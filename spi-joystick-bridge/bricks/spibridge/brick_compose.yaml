@@ -1,44 +1,33 @@
 # Source: https://forum.arduino.cc/t/getting-a-neato-xv-11-lidar-working-on-the-q/1445568/18
-# Source: Anyone had luck reading from a gamepad? - UNO Family / UNO Q - Arduino Forum
 services:
-
   spi3bridge:
-    # Use the prebuilt Docker Hub image for the SPI bridge.
-    # This container runs a Flask server that exposes SPI read/write endpoints.
+    # App Lab will automatically look for the Dockerfile in the same folder
     image: mjs513/spibridge-spi3bridge
-
-    # Pass the physical SPI device from the host into the container.
-    # This allows Python inside the container to talk directly to the UNO Q SPI bus.
+    # Map the UNO Q SPI hardware line into the container
     devices:
       - "/dev/spidev0.0:/dev/spidev0.0"
-
     ports:
-      # Map container port 5000 → host port 5000.
-      # Your client code will call http://localhost:5000 to talk to the SPI bridge.
+      # Expose the port for communication with the container's Flask web application.
+      # See: https://docs.docker.com/reference/compose-file/services/#ports
       - "5000:5000"
 
-
   joystickbridge:
-    # Use the prebuilt Docker Hub image for the joystick bridge.
-    # This container runs a Flask server that exposes joystick state via HTTP.
-    image: mjs513/joystick_brick-joystick
-
-    # Required because joystick devices under /dev/input often need elevated permissions.
+    image: mjs513/joystickbridge_autodetect 
     privileged: true
-
-    # Add the host group with GID 995 into the container.
-    # This is usually the group that owns /dev/input/event* on the host.
-    # Without this, the container may not have permission to read joystick events.
+    # --- ADDED FOR BLUETOOTH SUPPORT ---
+    #network_mode: "host"
+    volumes:
+      - /var/run/dbus:/var/run/dbus
+      - /dev/input:/dev/input:ro  # Mounts input directory dynamically as Read-Only
+    # -----------------------------------
+    
     group_add:
       - "995"
-
     devices:
-      # Pass the entire /dev/input directory into the container.
-      # This includes js0, event-joystick, and other input devices.
-      # The container can then open /dev/input/event-joystick directly.
-      - "/dev/input:/dev/input"
-
+      #- "/dev/input:/dev/input"
+      - "/usr/sbin/rfkill:/usr/sbin/rfkill" # Added to support 'rfkill unblock bluetooth' inside the script
+      
     ports:
-      # Map container port 5000 → host port 5001.
-      # Your client code will call http://localhost:5001 to talk to the joystick bridge.
+      # Expose the port for communication with the container's Flask web application.
+      # See: https://docs.docker.com/reference/compose-file/services/#ports
       - "5001:5000"
